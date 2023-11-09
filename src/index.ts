@@ -1,1 +1,1 @@
-export { analyzeChiaLog } from './analyze-chia-log.js'
+export { analyzeChiaLog, LogAnalyzationResult } from './analyze-chia-log.js'
