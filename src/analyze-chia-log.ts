@@ -22,7 +22,13 @@ export interface LogAnalyzationResult {
   plotNfts: PlotNft[]
 }
 
-export function analyzeChiaLog(logFileContent: string): LogAnalyzationResult {
+export interface AnalyzeOptions {
+  ignoreCriticalLogsMatching?: string[]
+  ignoreErrorLogsMatching?: string[]
+  ignoreWarningLogsMatching?: string[]
+}
+
+export function analyzeChiaLog(logFileContent: string, options?: AnalyzeOptions): LogAnalyzationResult {
   const logLines = mapLogFileContentsToLogLines(logFileContent)
 
   const criticalLogLines = logLines.filter(logLine => logLine.logLevel === LogLevel.critical)
@@ -30,9 +36,9 @@ export function analyzeChiaLog(logFileContent: string): LogAnalyzationResult {
   const warningLogLines = logLines.filter(logLine => logLine.logLevel === LogLevel.warning)
   const infoLogLines = logLines.filter(logLine => logLine.logLevel === LogLevel.info)
 
-  const groupedCriticalLines = groupSimilarLogLines(criticalLogLines)
-  const groupedErrorLines = groupSimilarLogLines(errorLogLines)
-  const groupedWarningLines = groupSimilarLogLines(warningLogLines)
+  const groupedCriticalLines = groupSimilarLogLines(criticalLogLines, options?.ignoreCriticalLogsMatching ?? [])
+  const groupedErrorLines = groupSimilarLogLines(errorLogLines, options?.ignoreErrorLogsMatching ?? [])
+  const groupedWarningLines = groupSimilarLogLines(warningLogLines, options?.ignoreWarningLogsMatching ?? [])
 
   return {
     groupedCriticalLines,

@@ -6,9 +6,12 @@ const maxDistance = messageLengthForGrouping - Math.round(messageLengthForGroupi
 
 export type GroupedLines = Map<string, LogLine[]>
 
-export function groupSimilarLogLines(logLines: LogLine[]): GroupedLines {
+export function groupSimilarLogLines(logLines: LogLine[], ignoreLinesMatching: string[] = []): GroupedLines {
   return logLines
     .reduce((logLineGroups, logLine) => {
+      if (ignoreLinesMatching.some(ignoreLineMatching => logLine.message.indexOf(ignoreLineMatching) !== -1)) {
+        return logLineGroups
+      }
       const logLineGroup = `${logLine.service}:${logLine.file}:${logLine.message.slice(0, messageLengthForGrouping)}`
       const matchingLogLineGroup = Array.from(logLineGroups.keys())
         .find(currLogLineGroup => distance(currLogLineGroup, logLineGroup) <= maxDistance)
