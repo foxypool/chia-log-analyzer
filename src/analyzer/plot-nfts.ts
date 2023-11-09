@@ -6,7 +6,7 @@ const plotNftRegex = /^Added pool: ({(?:.|\s)*})$/
 export interface PlotNft {
   launcherId: string
   poolContractAddress: string
-  poolUrl: string
+  poolUrl?: string
   payoutAddress: string
 }
 
