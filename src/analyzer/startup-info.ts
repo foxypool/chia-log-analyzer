@@ -20,17 +20,18 @@ export interface StartupInfo {
 }
 
 export function detectStartupInfo(infoLogLines: LogLine[], errorLogLines: LogLine[]): StartupInfo {
-  const lastDaemonStartupLogLine = infoLogLines
-    .filter(logLine => logLine.message === daemonStartupMessage)
-    .at(-1)
+  const reversedInfoLogLines = infoLogLines
+    .slice()
+    .reverse()
+  const lastDaemonStartupLogLine = reversedInfoLogLines.find(logLine => logLine.message === daemonStartupMessage)
 
-  const isOgRelease = infoLogLines
+  const isOgRelease = reversedInfoLogLines
     .some(logLine => logLine.message.startsWith(connectedToOgMessageStart) || logLine.message.startsWith(notOgPoolingMessageStart))
     || errorLogLines
       .some(logLine => logLine.message.startsWith(ogPoolInfoTimeoutMessageStart) || logLine.message.startsWith(ogPoolInfoErrorMessageStart))
   const isOgPooling = isOgRelease && infoLogLines.some(logLine => logLine.message.startsWith(connectedToOgMessageStart))
 
-  const chiaVersion = infoLogLines
+  const chiaVersion = reversedInfoLogLines
     .map(logLine => {
       const matches = logLine.message.match(chiaVersionRegex)
       if (matches === null || matches.length !== 2) {
@@ -41,7 +42,7 @@ export function detectStartupInfo(infoLogLines: LogLine[], errorLogLines: LogLin
     })
     .find(chiaVersion => chiaVersion !== undefined)
 
-  const foxyFarmerVersion = infoLogLines
+  const foxyFarmerVersion = reversedInfoLogLines
     .map(logLine => {
       const matches = logLine.message.match(foxyFarmerVersionRegex)
       if (matches === null || matches.length !== 2) {
@@ -52,7 +53,7 @@ export function detectStartupInfo(infoLogLines: LogLine[], errorLogLines: LogLin
     })
     .find(foxyFarmerVersion => foxyFarmerVersion !== undefined)
 
-  const foxyGhFarmerVersion = infoLogLines
+  const foxyGhFarmerVersion = reversedInfoLogLines
     .map(logLine => {
       const matches = logLine.message.match(foxyGhFarmerVersionRegex)
       if (matches === null || matches.length !== 2) {
