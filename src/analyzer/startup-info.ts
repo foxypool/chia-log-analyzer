@@ -29,7 +29,7 @@ export function detectStartupInfo(infoLogLines: LogLine[], errorLogLines: LogLin
     .some(logLine => logLine.message.startsWith(connectedToOgMessageStart) || logLine.message.startsWith(notOgPoolingMessageStart))
     || errorLogLines
       .some(logLine => logLine.message.startsWith(ogPoolInfoTimeoutMessageStart) || logLine.message.startsWith(ogPoolInfoErrorMessageStart))
-  const isOgPooling = isOgRelease && infoLogLines.some(logLine => logLine.message.startsWith(connectedToOgMessageStart))
+  const isOgPooling = isOgRelease && reversedInfoLogLines.some(logLine => logLine.message.startsWith(connectedToOgMessageStart))
 
   const chiaVersion = reversedInfoLogLines
     .map(logLine => {
