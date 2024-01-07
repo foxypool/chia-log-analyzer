@@ -16,7 +16,7 @@ export function detectSpSpam(infoLogLines: LogLine[]): SpSpam[] {
   let currentSpam: LogLine[] = []
 
   const addCurrentSpamToResult = () => {
-    if (currentSpam.length === 0) {
+    if (currentSpam.length < 4) {
       return
     }
     const minimumDurationInMsBetweenSps = currentSpam.reduce((minimumDuration, logLine, index) => {
@@ -60,7 +60,7 @@ export function detectSpSpam(infoLogLines: LogLine[]): SpSpam[] {
 
       return
     }
-    const isTooClose = nextSpLogLine.date.diff(logLine.date, 'ms') < 5000
+    const isTooClose = nextSpLogLine.date.diff(logLine.date, 'ms') < 3000
     if (!isTooClose) {
       addCurrentSpamToResult()
 
