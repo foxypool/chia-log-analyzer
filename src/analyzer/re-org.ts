@@ -1,4 +1,5 @@
 import {LogLine} from '../types/log-line.js'
+import {toChiaLogDate} from '../util/to-chia-log-date.js'
 
 const reOrgRegex = /Updated peak to height (\d+).+forked at (\d+)/
 
@@ -6,6 +7,7 @@ export interface ReOrg {
   forkedAtHeight: number
   peakHeight: number
   depth: number
+  rawDate: string
 }
 
 export function detectReOrgs(infoLogLines: LogLine[]): ReOrg[] {
@@ -26,6 +28,7 @@ export function detectReOrgs(infoLogLines: LogLine[]): ReOrg[] {
           peakHeight,
           forkedAtHeight,
           depth: peakHeight - forkedAtHeight,
+          rawDate: toChiaLogDate(logLine.date),
         }
       }
     })

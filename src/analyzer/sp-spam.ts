@@ -1,4 +1,5 @@
 import {LogLine} from '../types/log-line.js'
+import {toChiaLogDate} from '../util/to-chia-log-date.js'
 
 const spFinishedLogLineMatcher = 'Finished signage point'
 
@@ -7,6 +8,8 @@ export interface SpSpam {
   spCount: number
   minimumDurationInMsBetweenSps: number
   maximumDurationInMsBetweenSps: number
+  fromRawDate: string
+  toRawDate: string
 }
 
 export function detectSpSpam(infoLogLines: LogLine[]): SpSpam[] {
@@ -17,6 +20,8 @@ export function detectSpSpam(infoLogLines: LogLine[]): SpSpam[] {
 
   const addCurrentSpamToResult = () => {
     if (currentSpam.length < 4) {
+      currentSpam = []
+
       return
     }
     const minimumDurationInMsBetweenSps = currentSpam.reduce((minimumDuration, logLine, index) => {
@@ -49,6 +54,8 @@ export function detectSpSpam(infoLogLines: LogLine[]): SpSpam[] {
       spCount: currentSpam.length,
       minimumDurationInMsBetweenSps,
       maximumDurationInMsBetweenSps,
+      fromRawDate: toChiaLogDate(currentSpam[0].date),
+      toRawDate: toChiaLogDate(lastEntry.date),
     })
     currentSpam = []
   }
