@@ -1,6 +1,6 @@
 {
     "name": "@foxypool/chia-log-analyzer",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "author": "Felix Brucker <contact@foxypool.io>",
     "license": "GPL-3.0-or-later",
     "type": "module",
