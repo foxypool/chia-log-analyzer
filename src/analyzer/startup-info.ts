@@ -5,6 +5,7 @@ import {mapFind} from '../util/map-find.js'
 const chiaVersionRegex = /^chia-blockchain version: ([0-9.]+)$/
 const foxyFarmerVersionRegex = /^Foxy-Farmer ([0-9.]+).*$/
 const foxyGhFarmerVersionRegex = /^Foxy-GH-Farmer ([0-9.]+).*$/
+const startingServiceRegex = /^Starting service (\w+) \.\.\.$/
 const connectedToOgMessageStart = 'Connected to OG pool'
 const notOgPoolingMessageStart = 'Not OG pooling as'
 const ogPoolInfoTimeoutMessageStart = 'Timed out while retrieving OG pool info'
@@ -14,6 +15,7 @@ const daemonStartupMessage = 'Starting Daemon Server'
 export interface StartupInfo {
   lastDaemonStart?: Dayjs
   runningDurationInMs?: number
+  startedServices: string[]
   chiaVersion?: string
   isOgRelease: boolean
   isOgPooling: boolean
@@ -77,9 +79,21 @@ export function detectStartupInfo(infoLogLines: LogLine[], reversedInfoLogLines:
     foxyGhFarmerVersion => foxyGhFarmerVersion !== undefined,
   )
 
+  const startedServices = infoLogLines
+    .map(logLine => {
+      const matches = logLine.message.match(startingServiceRegex)
+      if (matches === null || matches.length !== 2) {
+        return
+      }
+
+      return matches[1]
+    })
+    .filter((serviceName): serviceName is string => serviceName !== undefined)
+
   return {
     lastDaemonStart: lastDaemonStartupLogLine?.date,
     runningDurationInMs,
+    startedServices: [...new Set(startedServices)],
     chiaVersion,
     isOgRelease,
     isOgPooling,
