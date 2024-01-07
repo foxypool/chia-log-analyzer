@@ -1,5 +1,6 @@
 import {LogLine} from '../types/log-line.js'
 import {Dayjs} from 'dayjs'
+import {mapFind} from '../util/map-find.js'
 
 const chiaVersionRegex = /^chia-blockchain version: ([0-9.]+)$/
 const foxyFarmerVersionRegex = /^Foxy-Farmer ([0-9.]+).*$/
@@ -12,6 +13,7 @@ const daemonStartupMessage = 'Starting Daemon Server'
 
 export interface StartupInfo {
   lastDaemonStart?: Dayjs
+  runningDurationInMs?: number
   chiaVersion?: string
   isOgRelease: boolean
   isOgPooling: boolean
@@ -19,53 +21,65 @@ export interface StartupInfo {
   foxyGhFarmerVersion?: string
 }
 
-export function detectStartupInfo(infoLogLines: LogLine[], errorLogLines: LogLine[]): StartupInfo {
-  const reversedInfoLogLines = infoLogLines
-    .slice()
-    .reverse()
-  const lastDaemonStartupLogLine = reversedInfoLogLines.find(logLine => logLine.message === daemonStartupMessage)
+export function detectStartupInfo(infoLogLines: LogLine[], reversedInfoLogLines: LogLine[], errorLogLines: LogLine[]): StartupInfo {
+  const latestLogLine = reversedInfoLogLines.at(0)
+  const lastDaemonStartupLogLineIndex = reversedInfoLogLines.findIndex(logLine => logLine.message.startsWith(daemonStartupMessage))
+  const lastDaemonStartupLogLine = lastDaemonStartupLogLineIndex !== -1 ? reversedInfoLogLines[lastDaemonStartupLogLineIndex] : undefined
+  let runningDurationInMs: number|undefined
+  if (latestLogLine !== undefined && lastDaemonStartupLogLine != undefined) {
+    runningDurationInMs = latestLogLine.date.diff(lastDaemonStartupLogLine.date, 'ms')
+  }
 
-  const isOgRelease = reversedInfoLogLines
+  const infoLogLinesSinceStartup = lastDaemonStartupLogLineIndex === -1 ? infoLogLines : reversedInfoLogLines.slice(0, lastDaemonStartupLogLineIndex + 3).reverse()
+
+  const isOgRelease = infoLogLinesSinceStartup
     .some(logLine => logLine.message.startsWith(connectedToOgMessageStart) || logLine.message.startsWith(notOgPoolingMessageStart))
     || errorLogLines
       .some(logLine => logLine.message.startsWith(ogPoolInfoTimeoutMessageStart) || logLine.message.startsWith(ogPoolInfoErrorMessageStart))
-  const isOgPooling = isOgRelease && reversedInfoLogLines.some(logLine => logLine.message.startsWith(connectedToOgMessageStart))
+  const isOgPooling = isOgRelease && infoLogLinesSinceStartup.some(logLine => logLine.message.startsWith(connectedToOgMessageStart))
 
-  const chiaVersion = reversedInfoLogLines
-    .map(logLine => {
+  const chiaVersion = mapFind(
+    infoLogLinesSinceStartup,
+    logLine => {
       const matches = logLine.message.match(chiaVersionRegex)
       if (matches === null || matches.length !== 2) {
         return
       }
 
       return matches[1]
-    })
-    .find(chiaVersion => chiaVersion !== undefined)
+    },
+    chiaVersion => chiaVersion !== undefined,
+  )
 
-  const foxyFarmerVersion = reversedInfoLogLines
-    .map(logLine => {
+  const foxyFarmerVersion = mapFind(
+    infoLogLinesSinceStartup,
+    logLine => {
       const matches = logLine.message.match(foxyFarmerVersionRegex)
       if (matches === null || matches.length !== 2) {
         return
       }
 
       return matches[1]
-    })
-    .find(foxyFarmerVersion => foxyFarmerVersion !== undefined)
+    },
+    foxyFarmerVersion => foxyFarmerVersion !== undefined,
+  )
 
-  const foxyGhFarmerVersion = reversedInfoLogLines
-    .map(logLine => {
+  const foxyGhFarmerVersion = mapFind(
+    infoLogLinesSinceStartup,
+    logLine => {
       const matches = logLine.message.match(foxyGhFarmerVersionRegex)
       if (matches === null || matches.length !== 2) {
         return
       }
 
       return matches[1]
-    })
-    .find(foxyGhFarmerVersion => foxyGhFarmerVersion !== undefined)
+    },
+    foxyGhFarmerVersion => foxyGhFarmerVersion !== undefined,
+  )
 
   return {
     lastDaemonStart: lastDaemonStartupLogLine?.date,
+    runningDurationInMs,
     chiaVersion,
     isOgRelease,
     isOgPooling,

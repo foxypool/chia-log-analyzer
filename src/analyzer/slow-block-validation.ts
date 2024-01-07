@@ -82,7 +82,7 @@ export function analyzeForSlowBlockValidation(warningLogLines: LogLine[]): SlowB
 
 
   return {
-    isSlow: blockValidationWarnings.length > 0,
+    isSlow: true,
     validation: {
       min: {
         timeInSeconds: minimumValidationTime.blockValidationTimeInSeconds,

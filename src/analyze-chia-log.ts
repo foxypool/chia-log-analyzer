@@ -35,6 +35,9 @@ export function analyzeChiaLog(logFileContent: string, options?: AnalyzeOptions)
   const errorLogLines = logLines.filter(logLine => logLine.logLevel === LogLevel.error)
   const warningLogLines = logLines.filter(logLine => logLine.logLevel === LogLevel.warning)
   const infoLogLines = logLines.filter(logLine => logLine.logLevel === LogLevel.info)
+  const reversedInfoLogLines = infoLogLines
+    .slice()
+    .reverse()
 
   const groupedCriticalLines = groupSimilarLogLines(criticalLogLines, options?.ignoreCriticalLogsMatching ?? [])
   const groupedErrorLines = groupSimilarLogLines(errorLogLines, options?.ignoreErrorLogsMatching ?? [])
@@ -46,8 +49,8 @@ export function analyzeChiaLog(logFileContent: string, options?: AnalyzeOptions)
     groupedWarningLines,
     slowBlockValidationResult: analyzeForSlowBlockValidation(warningLogLines),
     corruptPlots: detectCorruptPlots(errorLogLines),
-    startupInfo: detectStartupInfo(infoLogLines, errorLogLines),
-    plotCount: detectPlotCount(infoLogLines),
+    startupInfo: detectStartupInfo(infoLogLines, reversedInfoLogLines, errorLogLines),
+    plotCount: detectPlotCount(reversedInfoLogLines),
     slowPlotScans: detectSlowPlotScans(infoLogLines),
     duplicatePlots: detectDuplicatePlots(warningLogLines),
     plotNfts: detectPlotNfts(infoLogLines),
