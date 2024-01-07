@@ -9,6 +9,7 @@ import {detectSlowPlotScans, SlowPlotScan} from './analyzer/slow-plots.js'
 import {detectDuplicatePlots, DuplicatePlot} from './analyzer/duplicate-plot.js'
 import {detectPlotNfts, PlotNft} from './analyzer/plot-nfts.js'
 import {detectReOrgs, ReOrg} from './analyzer/re-org.js'
+import {detectSpSpam, SpSpam} from './analyzer/sp-spam.js'
 
 export interface LogAnalyzationResult {
   groupedCriticalLines: GroupedLines
@@ -22,6 +23,7 @@ export interface LogAnalyzationResult {
   duplicatePlots: DuplicatePlot[]
   plotNfts: PlotNft[]
   reOrgs: ReOrg[]
+  spSpams: SpSpam[]
 }
 
 export interface AnalyzeOptions {
@@ -57,5 +59,6 @@ export function analyzeChiaLog(logFileContent: string, options?: AnalyzeOptions)
     duplicatePlots: detectDuplicatePlots(warningLogLines),
     plotNfts: detectPlotNfts(infoLogLines),
     reOrgs: detectReOrgs(infoLogLines),
+    spSpams: detectSpSpam(infoLogLines),
   }
 }
