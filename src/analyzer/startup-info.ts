@@ -6,11 +6,17 @@ const chiaVersionRegex = /^chia-blockchain version: ([0-9.]+)$/
 const foxyFarmerVersionRegex = /^Foxy-Farmer ([0-9.]+).*$/
 const foxyGhFarmerVersionRegex = /^Foxy-GH-Farmer ([0-9.]+).*$/
 const startingServiceRegex = /^Starting service (\w+) \.\.\.$/
+const databaseInfoRegex = /^using blockchain database (.+), which is version (\d+)$/
 const connectedToOgMessageStart = 'Connected to OG pool'
 const notOgPoolingMessageStart = 'Not OG pooling as'
 const ogPoolInfoTimeoutMessageStart = 'Timed out while retrieving OG pool info'
 const ogPoolInfoErrorMessageStart = 'Error connecting to the OG pool'
 const daemonStartupMessage = 'Starting Daemon Server'
+
+export interface DatabaseInfo {
+  path: string
+  version: number
+}
 
 export interface StartupInfo {
   lastDaemonStart?: Dayjs
@@ -21,6 +27,7 @@ export interface StartupInfo {
   isOgPooling: boolean
   foxyFarmerVersion?: string
   foxyGhFarmerVersion?: string
+  databaseInfo?: DatabaseInfo
 }
 
 export function detectStartupInfo(infoLogLines: LogLine[], reversedInfoLogLines: LogLine[], errorLogLines: LogLine[]): StartupInfo {
@@ -90,6 +97,22 @@ export function detectStartupInfo(infoLogLines: LogLine[], reversedInfoLogLines:
     })
     .filter((serviceName): serviceName is string => serviceName !== undefined)
 
+  const databaseInfo = mapFind<LogLine, DatabaseInfo|undefined>(
+    infoLogLinesSinceStartup,
+    logLine => {
+      const matches = logLine.message.match(databaseInfoRegex)
+      if (matches === null || matches.length !== 3) {
+        return
+      }
+
+      return {
+        path: matches[1],
+        version: parseInt(matches[2], 10),
+      }
+    },
+    databaseInfo => databaseInfo !== undefined,
+  )
+
   return {
     lastDaemonStart: lastDaemonStartupLogLine?.date,
     runningDurationInMs,
@@ -99,5 +122,6 @@ export function detectStartupInfo(infoLogLines: LogLine[], reversedInfoLogLines:
     isOgPooling,
     foxyFarmerVersion,
     foxyGhFarmerVersion,
+    databaseInfo,
   }
 }

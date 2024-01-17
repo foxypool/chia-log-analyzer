@@ -10,6 +10,7 @@ import {detectDuplicatePlots, DuplicatePlot} from './analyzer/duplicate-plot.js'
 import {detectPlotNfts, PlotNft} from './analyzer/plot-nfts.js'
 import {detectReOrgs, ReOrg} from './analyzer/re-org.js'
 import {detectSpSpam, SpSpam} from './analyzer/sp-spam.js'
+import {detectUnsupportedDb} from './analyzer/unsupported-db.js'
 
 export interface LogAnalyzationResult {
   groupedCriticalLines: GroupedLines
@@ -24,6 +25,7 @@ export interface LogAnalyzationResult {
   plotNfts: PlotNft[]
   reOrgs: ReOrg[]
   spSpams: SpSpam[]
+  unsupportedDbVersion?: number
 }
 
 export interface AnalyzeOptions {
@@ -60,5 +62,6 @@ export function analyzeChiaLog(logFileContent: string, options?: AnalyzeOptions)
     plotNfts: detectPlotNfts(infoLogLines),
     reOrgs: detectReOrgs(infoLogLines),
     spSpams: detectSpSpam(infoLogLines),
+    unsupportedDbVersion: detectUnsupportedDb(errorLogLines),
   }
 }
