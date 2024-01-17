@@ -43,9 +43,10 @@ export function analyzeForSlowBlockValidation(warningLogLines: LogLine[]): SlowB
         percentFull: matches.length === 5 ? parseFloat(matches[4]) : undefined,
       }
     })
-    .filter((warning): warning is BlockValidationWarning => warning !== undefined && warning.blockValidationTimeInSeconds >= 4)
+    .filter((warning): warning is BlockValidationWarning => warning !== undefined)
 
-  if (blockValidationWarnings.length === 0) {
+  const slowBlockValidationWarnings = blockValidationWarnings.filter(warning => warning.blockValidationTimeInSeconds >= 4)
+  if (slowBlockValidationWarnings.length === 0) {
     return { isSlow: false }
   }
 
