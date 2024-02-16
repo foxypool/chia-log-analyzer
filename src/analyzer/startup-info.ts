@@ -3,7 +3,9 @@ import {Dayjs} from 'dayjs'
 import {mapFind} from '../util/map-find.js'
 
 const chiaVersionRegex = /^chia-blockchain version: ([0-9.]+)$/
-const foxyFarmerVersionRegex = /^Foxy-Farmer ([0-9.]+).*$/
+const legacyFoxyFarmerVersionRegex = /^Foxy-Farmer ([0-9.]+) using config in (.+\.ya?ml)$/
+const legacyFoxyFarmerHarvesterIdRegex = /^Harvester starting \(id=(\w+)\).*$/
+const foxyFarmerInfoRegex = /^Foxy-Farmer version=([0-9.]+) backend=(\w+) harvester_id=(\w+) config_path=(.+\.ya?ml)$/
 const foxyGhFarmerVersionRegex = /^Foxy-GH-Farmer ([0-9.]+).*$/
 const startingServiceRegex = /^Starting service (\w+) \.\.\.$/
 const databaseInfoRegex = /^using blockchain database (.+), which is version (\d+)$/
@@ -18,6 +20,13 @@ export interface DatabaseInfo {
   version: number
 }
 
+export interface FoxyFarmerInfo {
+  version: string
+  backend: string
+  harvesterId?: string
+  configPath: string
+}
+
 export interface StartupInfo {
   lastDaemonStart?: Dayjs
   runningDurationInMs?: number
@@ -25,8 +34,8 @@ export interface StartupInfo {
   chiaVersion?: string
   isOgRelease: boolean
   isOgPooling: boolean
-  foxyFarmerVersion?: string
   foxyGhFarmerVersion?: string
+  foxyFarmerInfo?: FoxyFarmerInfo
   databaseInfo?: DatabaseInfo
 }
 
@@ -60,31 +69,76 @@ export function detectStartupInfo(infoLogLines: LogLine[], reversedInfoLogLines:
     chiaVersion => chiaVersion !== undefined,
   )
 
-  const foxyFarmerVersion = mapFind(
+  let foxyFarmerInfo: FoxyFarmerInfo|undefined = mapFind(
     infoLogLinesSinceStartup,
-    logLine => {
-      const matches = logLine.message.match(foxyFarmerVersionRegex)
-      if (matches === null || matches.length !== 2) {
+    (logLine): FoxyFarmerInfo|undefined => {
+      const matches = logLine.message.match(foxyFarmerInfoRegex)
+      if (matches === null || matches.length !== 5) {
         return
       }
 
-      return matches[1]
+      return {
+        version: matches[1],
+        backend: matches[2],
+        harvesterId: matches[3],
+        configPath: matches[4],
+      }
     },
     foxyFarmerVersion => foxyFarmerVersion !== undefined,
   )
+  if (foxyFarmerInfo === undefined) {
+    const legacyFoxyFarmerVersion = mapFind(
+      infoLogLinesSinceStartup,
+      logLine => {
+        const matches = logLine.message.match(legacyFoxyFarmerVersionRegex)
+        if (matches === null || matches.length !== 3) {
+          return
+        }
 
-  const foxyGhFarmerVersion = mapFind(
-    infoLogLinesSinceStartup,
-    logLine => {
-      const matches = logLine.message.match(foxyGhFarmerVersionRegex)
-      if (matches === null || matches.length !== 2) {
-        return
+        return {
+          version: matches[1],
+          configPath: matches[2],
+        }
+      },
+      foxyFarmerVersion => foxyFarmerVersion !== undefined,
+    )
+    if (legacyFoxyFarmerVersion !== undefined) {
+      const legacyFoxyFarmerHarvesterId = mapFind(
+        infoLogLinesSinceStartup,
+        logLine => {
+          const matches = logLine.message.match(legacyFoxyFarmerHarvesterIdRegex)
+          if (matches === null || matches.length !== 2) {
+            return
+          }
+
+          return matches[1]
+        },
+        foxyFarmerVersion => foxyFarmerVersion !== undefined,
+      )
+      foxyFarmerInfo = {
+        version: legacyFoxyFarmerVersion.version,
+        backend: 'bladebit',
+        harvesterId: legacyFoxyFarmerHarvesterId,
+        configPath: legacyFoxyFarmerVersion.configPath,
       }
+    }
+  }
 
-      return matches[1]
-    },
-    foxyGhFarmerVersion => foxyGhFarmerVersion !== undefined,
-  )
+  let foxyGhFarmerVersion: string|undefined
+  if (foxyFarmerInfo === undefined) {
+    foxyGhFarmerVersion = mapFind(
+      infoLogLinesSinceStartup,
+      logLine => {
+        const matches = logLine.message.match(foxyGhFarmerVersionRegex)
+        if (matches === null || matches.length !== 2) {
+          return
+        }
+
+        return matches[1]
+      },
+      foxyGhFarmerVersion => foxyGhFarmerVersion !== undefined,
+    )
+  }
 
   const startedServices = infoLogLines
     .map(logLine => {
@@ -120,7 +174,7 @@ export function detectStartupInfo(infoLogLines: LogLine[], reversedInfoLogLines:
     chiaVersion,
     isOgRelease,
     isOgPooling,
-    foxyFarmerVersion,
+    foxyFarmerInfo,
     foxyGhFarmerVersion,
     databaseInfo,
   }
