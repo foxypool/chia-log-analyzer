@@ -20,7 +20,12 @@ export function detectPlotNfts(infoLogLines: LogLine[]): PlotNft[] {
       if (matches === null || matches.length !== 2) {
         return
       }
-      const plotNft = JSON.parse(matches[1].trim().replaceAll(`'`,'"'))
+      let plotNft: any
+      try {
+        plotNft = JSON.parse(matches[1].trim().replaceAll(`'`,'"'))
+      } catch (_) {
+        return
+      }
       let payoutAddress = plotNft.payout_instructions
       try {
         payoutAddress = convertPuzzleHashToAddress(plotNft.payout_instructions)
