@@ -1,3 +1,5 @@
+import '../extensions/array-extensions.js'
+
 import {LogLine} from '../types/log-line.js'
 import {Dayjs} from 'dayjs'
 
@@ -10,7 +12,7 @@ export interface SlowPlotScan {
 
 export function detectSlowPlotScans(infoLogLines: LogLine[]): SlowPlotScan[] {
   return infoLogLines
-    .map((logLine): SlowPlotScan|undefined => {
+    .mapAndFilter((logLine): SlowPlotScan|undefined => {
       const matches = logLine.message.match(plotScanRegex)
       if (matches === null || matches.length !== 3) {
         return
@@ -21,5 +23,4 @@ export function detectSlowPlotScans(infoLogLines: LogLine[]): SlowPlotScan[] {
         durationInSeconds: parseFloat(matches[2]),
       }
     })
-    .filter((slowPlotScan): slowPlotScan is SlowPlotScan => slowPlotScan !== undefined && slowPlotScan.durationInSeconds > 20)
 }

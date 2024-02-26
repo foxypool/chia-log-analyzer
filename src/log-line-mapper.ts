@@ -1,3 +1,5 @@
+import './extensions/array-extensions.js'
+
 import dayjs from 'dayjs'
 import {LogLevel, LogLine} from './types/log-line.js'
 
@@ -10,7 +12,7 @@ export function mapLogFileContentsToLogLines(logFileContents: string): LogLine[]
   const logLines: string[] = []
   for (const line of lines) {
     if (line.match(logLineTimestampRegex) === null) {
-      if (logLines.length >= 0) {
+      if (logLines.length > 0) {
         logLines[logLines.length -1] = `${logLines[logLines.length - 1]}\n${line}`
 
         continue
@@ -19,9 +21,7 @@ export function mapLogFileContentsToLogLines(logFileContents: string): LogLine[]
     logLines.push(line)
   }
 
-  return logLines
-    .map(mapToLogLine)
-    .filter((logLine): logLine is LogLine => logLine !== undefined)
+  return logLines.mapAndFilter(mapToLogLine)
 }
 
 

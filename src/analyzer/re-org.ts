@@ -1,3 +1,5 @@
+import '../extensions/array-extensions.js'
+
 import {LogLine} from '../types/log-line.js'
 import {toChiaLogDate} from '../util/to-chia-log-date.js'
 
@@ -12,7 +14,7 @@ export interface ReOrg {
 
 export function detectReOrgs(infoLogLines: LogLine[]): ReOrg[] {
   return infoLogLines
-    .map((logLine): ReOrg|undefined => {
+    .mapAndFilter((logLine): ReOrg|undefined => {
       if (logLine.file !== 'chia.full_node.full_node') {
         return
       }
@@ -32,5 +34,4 @@ export function detectReOrgs(infoLogLines: LogLine[]): ReOrg[] {
         }
       }
     })
-    .filter((reOrg): reOrg is ReOrg => reOrg !== undefined)
 }

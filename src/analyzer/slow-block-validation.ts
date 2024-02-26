@@ -1,3 +1,5 @@
+import '../extensions/array-extensions.js'
+
 import {LogLine} from '../types/log-line.js'
 import {Dayjs} from 'dayjs'
 
@@ -29,7 +31,7 @@ const slowBlockValidationRegex = /^Block validation time: ([0-9]+\.[0-9]+) secon
 
 export function analyzeForSlowBlockValidation(warningLogLines: LogLine[]): SlowBlockValidationResult {
   const blockValidationWarnings = warningLogLines
-    .map((logLine): BlockValidationWarning|undefined => {
+    .mapAndFilter((logLine): BlockValidationWarning|undefined => {
       const matches = logLine.message.match(slowBlockValidationRegex)
       if (matches === null || (matches.length !== 5 && matches.length !== 3)) {
         return
@@ -43,7 +45,6 @@ export function analyzeForSlowBlockValidation(warningLogLines: LogLine[]): SlowB
         percentFull: matches.length === 5 ? parseFloat(matches[4]) : undefined,
       }
     })
-    .filter((warning): warning is BlockValidationWarning => warning !== undefined)
 
   const slowBlockValidationWarnings = blockValidationWarnings.filter(warning => warning.blockValidationTimeInSeconds >= 4)
   if (slowBlockValidationWarnings.length === 0) {

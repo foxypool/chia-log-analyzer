@@ -11,6 +11,7 @@ import {detectPlotNfts, PlotNft} from './analyzer/plot-nfts.js'
 import {detectReOrgs, ReOrg} from './analyzer/re-org.js'
 import {detectSpSpam, SpSpam} from './analyzer/sp-spam.js'
 import {detectUnsupportedDb} from './analyzer/unsupported-db.js'
+import {grouping} from './util/grouping.js'
 
 export interface LogAnalyzationResult {
   groupedCriticalLines: GroupedLines
@@ -36,11 +37,12 @@ export interface AnalyzeOptions {
 
 export function analyzeChiaLog(logFileContent: string, options?: AnalyzeOptions): LogAnalyzationResult {
   const logLines = mapLogFileContentsToLogLines(logFileContent)
+  const logLinesByLogLevel = grouping(logLines, logLine => logLine.logLevel)
 
-  const criticalLogLines = logLines.filter(logLine => logLine.logLevel === LogLevel.critical)
-  const errorLogLines = logLines.filter(logLine => logLine.logLevel === LogLevel.error)
-  const warningLogLines = logLines.filter(logLine => logLine.logLevel === LogLevel.warning)
-  const infoLogLines = logLines.filter(logLine => logLine.logLevel === LogLevel.info)
+  const criticalLogLines = logLinesByLogLevel.get(LogLevel.critical) ?? []
+  const errorLogLines = logLinesByLogLevel.get(LogLevel.error) ?? []
+  const warningLogLines = logLinesByLogLevel.get(LogLevel.warning) ?? []
+  const infoLogLines = logLinesByLogLevel.get(LogLevel.info) ?? []
   const reversedInfoLogLines = infoLogLines
     .slice()
     .reverse()

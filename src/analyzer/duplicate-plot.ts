@@ -1,3 +1,5 @@
+import '../extensions/array-extensions.js'
+
 import {LogLine} from '../types/log-line.js'
 
 const duplicatePlotRegex = /^Have multiple copies of the plot (.+\.plot) in \[(.*)].*$/
@@ -9,7 +11,7 @@ export interface DuplicatePlot {
 
 export function detectDuplicatePlots(warningLogLines: LogLine[]): DuplicatePlot[] {
   return warningLogLines
-    .map((logLine): DuplicatePlot|undefined => {
+    .mapAndFilter((logLine): DuplicatePlot|undefined => {
       if (logLine.file !== 'chia.plotting.manager') {
         return
       }
@@ -23,5 +25,4 @@ export function detectDuplicatePlots(warningLogLines: LogLine[]): DuplicatePlot[
         plotPaths: matches[2].split(', ').map(plotPath => plotPath.trim().replaceAll(`'`, '').replaceAll('\\\\', '\\')),
       }
     })
-    .filter((duplicatePlot): duplicatePlot is DuplicatePlot => duplicatePlot !== undefined)
 }

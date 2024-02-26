@@ -1,3 +1,5 @@
+import '../extensions/array-extensions.js'
+
 import {LogLine} from '../types/log-line.js'
 
 const plotRegex = /^File: (.+\.plot) Plot ID.*$/
@@ -9,7 +11,7 @@ export interface CorruptPlot {
 
 export function detectCorruptPlots(errorLogLines: LogLine[]): CorruptPlot[] {
   const plotsWithErrors = errorLogLines
-    .map(logLine => {
+    .mapAndFilter(logLine => {
       const matches = logLine.message.match(plotRegex)
       if (matches === null || matches.length !== 2) {
         return
@@ -17,7 +19,6 @@ export function detectCorruptPlots(errorLogLines: LogLine[]): CorruptPlot[] {
 
       return matches[1]
     })
-    .filter((plotPath): plotPath is string => plotPath !== undefined)
 
   const numberOfErrorsByPlotPath = plotsWithErrors.reduce((agg, plotPath) => {
     const errorCount = agg.get(plotPath) ?? 0

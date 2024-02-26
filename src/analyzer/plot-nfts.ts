@@ -1,3 +1,5 @@
+import '../extensions/array-extensions.js'
+
 import {LogLine} from '../types/log-line.js'
 import {convertPuzzleHashToAddress} from '../util/puzzle-hash.js'
 
@@ -12,7 +14,7 @@ export interface PlotNft {
 
 export function detectPlotNfts(infoLogLines: LogLine[]): PlotNft[] {
   const plotNfts = infoLogLines
-    .map((logLine): PlotNft|undefined => {
+    .mapAndFilter((logLine): PlotNft|undefined => {
       if (logLine.file !== 'chia.farmer.farmer') {
         return
       }
@@ -38,7 +40,6 @@ export function detectPlotNfts(infoLogLines: LogLine[]): PlotNft[] {
         payoutAddress,
       }
     })
-    .filter((plotNft): plotNft is PlotNft => plotNft !== undefined)
     .reduce((agg, plotNft) => {
       agg.set(plotNft.launcherId, plotNft)
 

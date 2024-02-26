@@ -1,3 +1,5 @@
+import '../extensions/array-extensions.js'
+
 import {LogLine} from '../types/log-line.js'
 import {Dayjs} from 'dayjs'
 import {mapFind} from '../util/map-find.js'
@@ -141,7 +143,7 @@ export function detectStartupInfo(infoLogLines: LogLine[], reversedInfoLogLines:
   }
 
   const startedServices = infoLogLines
-    .map(logLine => {
+    .mapAndFilter(logLine => {
       const matches = logLine.message.match(startingServiceRegex)
       if (matches === null || matches.length !== 2) {
         return
@@ -149,7 +151,6 @@ export function detectStartupInfo(infoLogLines: LogLine[], reversedInfoLogLines:
 
       return matches[1]
     })
-    .filter((serviceName): serviceName is string => serviceName !== undefined)
 
   const databaseInfo = mapFind<LogLine, DatabaseInfo|undefined>(
     infoLogLinesSinceStartup,
