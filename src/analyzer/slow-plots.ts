@@ -17,10 +17,14 @@ export function detectSlowPlotScans(infoLogLines: LogLine[]): SlowPlotScan[] {
       if (matches === null || matches.length !== 3) {
         return
       }
+      const durationInSeconds = parseFloat(matches[2])
+      if (durationInSeconds < 20) {
+        return
+      }
 
       return {
         date: logLine.date,
-        durationInSeconds: parseFloat(matches[2]),
+        durationInSeconds,
       }
     })
 }
