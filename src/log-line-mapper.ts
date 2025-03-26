@@ -25,7 +25,7 @@ export function mapLogFileContentsToLogLines(logFileContents: string): LogLine[]
 }
 
 
-const logLineRegex = /^([0-9-]+T[0-9:.]+) ([a-z._]+) ([a-z._]+)\s*: ([A-Z]+) \s*((?:.|\s)*)$/
+const logLineRegex = /^([0-9-]+T[0-9:.]+)(?: [0-9.]+)? ([a-z._]+) ([a-z._]+)\s*: ([A-Z]+) \s*((?:.|\s)*)$/
 function mapToLogLine(line: string): LogLine|undefined {
   const matches = line.trim().match(logLineRegex)
   if (matches === null || matches.length !== 6) {
